@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visualizador de Excel Pro - Fusion Edition</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+    <style id="app-style">
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        
+        .drop-zone { 
+            border: 3px dashed #cbd5e1; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        .drop-zone.active { 
+            border-color: #3b82f6; 
+            background-color: rgba(59, 130, 246, 0.05); 
+            transform: scale(1.01);
+        }
+
+        .charts-grid { 
+            display: grid; 
+            gap: 1.5rem; 
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 768px) { .charts-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1280px) { .charts-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .chart-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        .loading-overlay { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(4px);
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+        }
+
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+<div id="app">
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-10 shadow-lg">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-extrabold mb-3 tracking-tight">Visualizador Excel Pro</h1>
+            <p class="text-blue-100 text-lg font-light opacity-90">Análisis inteligente de datos con visualización en tiempo real</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8 animate-fade-in">
+            <div id="dropZone" class="drop-zone rounded-xl p-10 text-center cursor-pointer group">
+                <div class="mb-4 transition-transform group-hover:scale-110 duration-300">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-blue-500"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-slate-700 mb-2">Arrastra tu archivo aquí</h2>
+                <p class="text-slate-500 mb-6">Soporta formatos .xlsx, .xls y .csv (Máx. 25MB)</p>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg hover:shadow-blue-200">
+                    Seleccionar Archivo
+                </button>
+                <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv">
+            </div>
+
+            <div id="fileInfo" class="hidden mt-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex justify-between items-center animate-fade-in">
+                <div class="flex items-center gap-4">
+                    <div class="bg-blue-600 p-3 rounded-lg text-white">
+                        <i class="fas fa-file-excel text-xl"></i>
+                    </div>
+                    <div>
+                        <p id="fileName" class="font-bold text-blue-900 leading-none mb-1"></p>
+                        <p id="fileSize" class="text-sm text-blue-600"></p>
+                    </div>
+                </div>
+                <button id="clearButton" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-100 text-red-500 transition-colors">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="sheetSelection" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <div class="flex-1 w-full">
+                    <label class="block text-sm font-bold text-slate-600 uppercase tracking-wider mb-2">Hoja Detectada</label>
+                    <div class="relative">
+                        <select id="sheetSelector" class="w-full appearance-none bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 pr-10 focus:ring-2 focus:ring-blue-500 outline-none transition-all cursor-pointer">
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+                <button id="generateChartsBtn" class="w-full md:w-auto mt-6 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-xl transition-all shadow-md">
+                    Actualizar Visualización
+                </button>
+            </div>
+        </div>
+
+        <div id="chartsSection" class="hidden">
+            <div class="flex items-center gap-3 mb-6">
+                <i class="fas fa-chart-line text-2xl text-indigo-600"></i>
+                <h2 class="text-2xl font-bold text-slate-800">Panel de Resultados</h2>
+            </div>
+            
+            <div class="charts-grid" id="chartsGrid">
+                <div class="chart-card">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Distribución de Categorías</h3>
+                    <div class="chart-container"><canvas id="barChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Composición Porcentual</h3>
+                    <div class="chart-container"><canvas id="pieChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Evolución de Datos</h3>
+                    <div class="chart-container"><canvas id="lineChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Frecuencia de Valores (Histograma)</h3>
+                    <div class="chart-container"><canvas id="histogramChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Relación de Proporción</h3>
+                    <div class="chart-container"><canvas id="doughnutChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Crecimiento Acumulado</h3>
+                    <div class="chart-container"><canvas id="areaChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="text-center bg-white p-8 rounded-2xl shadow-2xl">
+                <div class="spinner text-blue-600 mb-4">
+                    <i class="fas fa-circle-notch text-6xl"></i>
+                </div>
+                <p id="loadingText" class="text-xl font-bold text-slate-700">Procesando datos...</p>
+                <p class="text-slate-400 text-sm mt-2">Esto puede tardar unos segundos</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-8 mt-12 text-center text-slate-500">
+        <p class="font-medium">&copy; 2026 Visualizador Pro | Analítica de Datos simplificada</p>
+    </footer>
+</div>
+
+<script>
+    // Configuración Inicial
+    Chart.register(ChartDataLabels);
+    
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const sheetSelector = document.getElementById('sheetSelector');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    let workbook = null;
+    let chartInstances = {};
+
+    // Configuración compartida de etiquetas (Datalabels)
+    const commonDatalabels = {
+        display: (context) => context.dataset.data[context.dataIndex] > 0,
+        color: '#1e293b',
+        font: { weight: '600', size: 10 },
+        formatter: (value) => value.toLocaleString(),
+        anchor: 'end',
+        align: 'top',
+        offset: 2
+    };
+
+    // --- Lógica de Archivos ---
+    dropZone.onclick = () => fileInput.click();
+    
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('active'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('active');
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('active');
+        processFile(e.dataTransfer.files[0]);
+    };
+
+    fileInput.onchange = (e) => processFile(e.target.files[0]);
+    document.getElementById('clearButton').onclick = () => location.reload();
+
+    function processFile(file) {
+        if (!file) return;
+        showLoading('Analizando estructura del archivo...');
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                workbook = XLSX.read(data, { type: 'array' });
+                
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+                document.getElementById('fileInfo').classList.remove('hidden');
+                document.getElementById('sheetSelection').classList.remove('hidden');
+                
+                sheetSelector.innerHTML = workbook.SheetNames.map(n => `<option value="${n}">${n}</option>`).join('');
+                renderCharts(workbook.SheetNames[0]);
+            } catch (err) {
+                alert("Error al procesar: " + err.message);
+                hideLoading();
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    document.getElementById('generateChartsBtn').onclick = () => renderCharts(sheetSelector.value);
+
+    // --- Lógica de Visualización ---
+    function renderCharts(sheetName) {
+        showLoading('Generando visualizaciones inteligentes...');
+        
+        const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        if (data.length === 0) {
+            alert("La hoja seleccionada está vacía");
+            return hideLoading();
+        }
+
+        // Detección automática de columnas
+        const headers = Object.keys(data[0]);
+        const numCol = headers.find(h => typeof data[0][h] === 'number') || headers[1];
+        const catCol = headers.find(h => typeof data[0][h] !== 'number') || headers[0];
+
+        // Limpiar gráficos previos
+        Object.values(chartInstances).forEach(c => c.destroy());
+        document.getElementById('chartsSection').classList.remove('hidden');
+
+        // Procesamiento de datos (Agrupación)
+        const agg = aggregateData(data, catCol, numCol);
+        const palette = generateColors(agg.labels.length);
+
+        // 1. Bar Chart
+        chartInstances.bar = createChart('barChart', 'bar', agg.labels, agg.values, `Suma de ${numCol}`, palette[0], commonDatalabels);
+
+        // 2. Pie Chart (Top 10 para claridad)
+        const top10 = getTopN(agg, 10);
+        chartInstances.pie = createChart('pieChart', 'pie', top10.labels, top10.values, '', palette, {
+            ...commonDatalabels,
+            anchor: 'center',
+            align: 'center',
+            color: '#fff',
+            formatter: (v, ctx) => {
+                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                return Math.round((v / sum) * 100) + "%";
+            }
+        });
+
+        // 3. Line Chart
+        chartInstances.line = createChart('lineChart', 'line', agg.labels, agg.values, numCol, palette[1], commonDatalabels);
+
+        // 4. Histogram
+        createHistogram(data, numCol);
+
+        // 5. Doughnut
+        chartInstances.doughnut = createChart('doughnutChart', 'doughnut', top10.labels.slice(0,6), top10.values.slice(0,6), '', palette, {
+            ...commonDatalabels,
+            anchor: 'center',
+            color: '#334155'
+        });
+
+        // 6. Area
+        chartInstances.area = createChart('areaChart', 'line', agg.labels, agg.values, numCol, palette[2], commonDatalabels, true);
+
+        hideLoading();
+    }
+
+    function createChart(id, type, labels, values, title, color, dlConfig, fill = false) {
+        const ctx = document.getElementById(id).getContext('2d');
+        const isArrayColor = Array.isArray(color);
+        
+        return new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: values,
+                    backgroundColor: isArrayColor ? color : (type === 'line' ? color.replace('1)', '0.1)') : color.replace('1)', '0.7)')),
+                    borderColor: isArrayColor ? '#fff' : color,
+                    borderWidth: 2,
+                    fill: fill,
+                    tension: 0.4,
+                    pointRadius: type === 'line' ? 4 : 0,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: ['pie', 'doughnut'].includes(type),
+                        position: 'bottom',
+                        labels: { boxWidth: 12, usePointStyle: true }
+                    },
+                    datalabels: dlConfig,
+                    tooltip: { padding: 12, cornerRadius: 8 }
+                },
+                scales: ['pie', 'doughnut'].includes(type) ? {} : {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function createHistogram(data, col) {
+        const values = data.map(r => Number(r[col])).filter(v => !isNaN(v));
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const bins = 8;
+        const step = (max - min) / bins;
+        
+        let histData = Array(bins).fill(0);
+        let labels = [];
+        
+        for(let i=0; i<bins; i++) {
+            let low = min + (i * step);
+            let high = low + step;
+            labels.push(`${Math.round(low)}-${Math.round(high)}`);
+            histData[i] = values.filter(v => v >= low && v < high).length;
+        }
+
+        const ctx = document.getElementById('histogramChart').getContext('2d');
+        chartInstances.histogram = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: histData,
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 1,
+                    barPercentage: 1,
+                    categoryPercentage: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { datalabels: commonDatalabels },
+                scales: { 
+                    y: { beginAtZero: true, grace: '15%' },
+                    x: { title: { display: true, text: 'Rango de Valores' } }
+                }
+            }
+        });
+    }
+
+    function aggregateData(data, catCol, numCol) {
+        const res = {};
+        data.forEach(r => {
+            const k = r[catCol] || 'Sin categoría';
+            const v = Number(r[numCol]) || 0;
+            res[k] = (res[k] || 0) + v;
+        });
+        return { labels: Object.keys(res), values: Object.values(res) };
+    }
+
+    function getTopN(agg, n) {
+        const list = agg.labels.map((l, i) => ({ l, v: agg.values[i] }));
+        list.sort((a, b) => b.v - a.v);
+        const top = list.slice(0, n);
+        return { labels: top.map(x => x.l), values: top.map(x => x.v) };
+    }
+
+    function generateColors(n) {
+        const palette = [
+            'rgba(59, 130, 246, 1)',  'rgba(16, 185, 129, 1)', 
+            'rgba(245, 158, 11, 1)',  'rgba(239, 68, 68, 1)', 
+            'rgba(139, 92, 246, 1)',  'rgba(236, 72, 153, 1)',
+            'rgba(6, 182, 212, 1)',   'rgba(249, 115, 22, 1)'
+        ];
+        return Array.from({length: n}, (_, i) => palette[i % palette.length]);
+    }
+
+    function showLoading(msg) { 
+        document.getElementById('loadingText').textContent = msg; 
+        loadingOverlay.classList.remove('hidden'); 
+    }
+    
+    function hideLoading() { 
+        loadingOverlay.classList.add('hidden'); 
+    }
+</script>
+
+</body>
+</html>
