@@ -1,0 +1,239 @@
+
+<style>
+  @keyframes spin-slow  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes dash-flow  { from{stroke-dashoffset:48} to{stroke-dashoffset:0} }
+  @keyframes pulse-ring { 0%{r:56;opacity:.2} 70%{r:72;opacity:0} 100%{r:72;opacity:0} }
+  @keyframes dot-beat   { 0%,100%{r:3.5} 50%{r:5} }
+  .spin      { animation: spin-slow 22s linear infinite; transform-origin:340px 320px; }
+  .flow-t    { stroke-dasharray:7 5; animation: dash-flow 1.3s linear infinite; }
+  .flow-b    { stroke-dasharray:7 5; animation: dash-flow 1.3s linear infinite reverse; }
+  .pring     { animation: pulse-ring 2.6s ease-out infinite; transform-origin:340px 320px; }
+  .db { animation: dot-beat 2s ease-in-out infinite; }
+  .db2{ animation: dot-beat 2s ease-in-out infinite .35s; }
+  .db3{ animation: dot-beat 2s ease-in-out infinite .7s; }
+  .db4{ animation: dot-beat 2s ease-in-out infinite 1.05s; }
+  .db5{ animation: dot-beat 2s ease-in-out infinite 1.4s; }
+  .db6{ animation: dot-beat 2s ease-in-out infinite 1.75s; }
+</style>
+<svg width="100%" viewBox="0 0 680 640" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="bgr" cx="50%" cy="50%" r="60%">
+    <stop offset="0%"   stop-color="#0C1828"/>
+    <stop offset="100%" stop-color="#050C17"/>
+  </radialGradient>
+  <radialGradient id="hub-fill" cx="40%" cy="35%" r="65%">
+    <stop offset="0%"   stop-color="#1A3560"/>
+    <stop offset="100%" stop-color="#091828"/>
+  </radialGradient>
+  <radialGradient id="rg-teal" cx="30%" cy="25%" r="70%">
+    <stop offset="0%" stop-color="#1eddbb"/><stop offset="100%" stop-color="#0a7a65"/>
+  </radialGradient>
+  <radialGradient id="rg-blue" cx="30%" cy="25%" r="70%">
+    <stop offset="0%" stop-color="#4BAAF5"/><stop offset="100%" stop-color="#1155CC"/>
+  </radialGradient>
+  <radialGradient id="rg-purple" cx="30%" cy="25%" r="70%">
+    <stop offset="0%" stop-color="#A07CF8"/><stop offset="100%" stop-color="#5520C8"/>
+  </radialGradient>
+  <radialGradient id="rg-amber" cx="30%" cy="25%" r="70%">
+    <stop offset="0%" stop-color="#F8B84B"/><stop offset="100%" stop-color="#B06008"/>
+  </radialGradient>
+  <radialGradient id="rg-cyan" cx="30%" cy="25%" r="70%">
+    <stop offset="0%" stop-color="#22DDE8"/><stop offset="100%" stop-color="#087A9A"/>
+  </radialGradient>
+  <radialGradient id="rg-violet" cx="30%" cy="25%" r="70%">
+    <stop offset="0%" stop-color="#D07BFA"/><stop offset="100%" stop-color="#7020C0"/>
+  </radialGradient>
+  <filter id="glow-hub" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="7" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glow-sm" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="3" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+
+<!-- Background -->
+<rect width="680" height="640" fill="url(#bgr)" rx="16"/>
+
+<!-- Grid texture -->
+<g opacity="0.055" fill="#7EC8FF">
+  <circle cx="60"  cy="60"  r="1.4"/> <circle cx="180" cy="60"  r="1.4"/> <circle cx="300" cy="60"  r="1.4"/>
+  <circle cx="420" cy="60"  r="1.4"/> <circle cx="540" cy="60"  r="1.4"/> <circle cx="640" cy="60"  r="1.4"/>
+  <circle cx="60"  cy="580" r="1.4"/> <circle cx="180" cy="580" r="1.4"/> <circle cx="300" cy="580" r="1.4"/>
+  <circle cx="420" cy="580" r="1.4"/> <circle cx="540" cy="580" r="1.4"/> <circle cx="640" cy="580" r="1.4"/>
+  <circle cx="60"  cy="320" r="1.4"/> <circle cx="640" cy="320" r="1.4"/>
+</g>
+
+<!-- Orbit ring (spinning) -->
+<circle cx="340" cy="320" r="140" fill="none" stroke="#1eddbb" stroke-width="0.5" stroke-dasharray="3 9" opacity="0.22" class="spin"/>
+
+<!-- Pulse -->
+<circle cx="340" cy="320" r="56" fill="none" stroke="#1eddbb" stroke-width="1.8" opacity="0.14" class="pring"/>
+
+<!-- ════════════════════════════════
+     CURVAS DE CONEXIÓN
+     Cada curva parte del borde del hub (r=56) hacia el nodo satélite
+════════════════════════════════ -->
+
+<!-- → Drop Zone (arriba) -->
+<path d="M340 264 C340 230 340 200 340 174" fill="none" stroke="#1eddbb" stroke-width="1.3" opacity="0.55" class="flow-t"/>
+<circle cx="340" cy="264" r="3.5" fill="#1eddbb" class="db" filter="url(#glow-sm)"/>
+
+<!-- → SheetJS Parser (arriba-derecha) -->
+<path d="M386 292 C420 265 455 240 490 218" fill="none" stroke="#4BAAF5" stroke-width="1.3" opacity="0.55" class="flow-t"/>
+<circle cx="386" cy="292" r="3.5" fill="#4BAAF5" class="db2" filter="url(#glow-sm)"/>
+
+<!-- → 6 Gráficas (derecha) -->
+<path d="M396 320 C432 310 470 312 508 316" fill="none" stroke="#A07CF8" stroke-width="1.3" opacity="0.55" class="flow-t"/>
+<circle cx="396" cy="320" r="3.5" fill="#A07CF8" class="db3" filter="url(#glow-sm)"/>
+
+<!-- → Paleta de colores (abajo-derecha) -->
+<path d="M384 350 C415 378 445 400 476 420" fill="none" stroke="#F8B84B" stroke-width="1.3" opacity="0.55" class="flow-b"/>
+<circle cx="384" cy="350" r="3.5" fill="#F8B84B" class="db4" filter="url(#glow-sm)"/>
+
+<!-- → Detección de columnas (abajo-izquierda) -->
+<path d="M296 350 C265 378 235 400 200 418" fill="none" stroke="#22DDE8" stroke-width="1.3" opacity="0.55" class="flow-b"/>
+<circle cx="296" cy="350" r="3.5" fill="#22DDE8" class="db5" filter="url(#glow-sm)"/>
+
+<!-- → aggregateData (izquierda) -->
+<path d="M284 320 C250 310 210 312 172 318" fill="none" stroke="#D07BFA" stroke-width="1.3" opacity="0.55" class="flow-b"/>
+<circle cx="284" cy="320" r="3.5" fill="#D07BFA" class="db6" filter="url(#glow-sm)"/>
+
+<!-- ════════════════════════════════
+     HUB CENTRAL — renderCharts()
+════════════════════════════════ -->
+<circle cx="340" cy="320" r="60" fill="url(#hub-fill)" filter="url(#glow-hub)" stroke="#1eddbb" stroke-width="1.2" opacity="0.95"/>
+<circle cx="340" cy="320" r="50" fill="none" stroke="#1eddbb" stroke-width="0.5" opacity="0.2"/>
+
+<!-- Ícono chart SVG dentro del hub -->
+<!-- barras mini -->
+<rect x="316" y="333" width="7" height="12" rx="2" fill="#1eddbb" opacity="0.7"/>
+<rect x="327" y="325" width="7" height="20" rx="2" fill="#1eddbb" opacity="0.85"/>
+<rect x="338" y="318" width="7" height="27" rx="2" fill="#1eddbb"/>
+<rect x="349" y="328" width="7" height="17" rx="2" fill="#1eddbb" opacity="0.8"/>
+<rect x="360" y="322" width="7" height="23" rx="2" fill="#1eddbb" opacity="0.65"/>
+<!-- línea de base -->
+<line x1="312" y1="345" x2="372" y2="345" stroke="#1eddbb" stroke-width="1" opacity="0.4"/>
+<!-- línea de tendencia -->
+<polyline points="316,337 327,329 338,322 349,332 360,326" fill="none" stroke="#fff" stroke-width="1.3" opacity="0.45" stroke-linecap="round" stroke-linejoin="round"/>
+
+<!-- Texto debajo del hub -->
+<text font-family="var(--font-sans)" font-size="11" font-weight="500" fill="#6EEFCC" text-anchor="middle" x="340" y="395" opacity="0.85">renderCharts()</text>
+
+<!-- ════════════════════════════════
+     NODO 1 — Drop Zone  (arriba)
+════════════════════════════════ -->
+<g style="cursor:pointer" onclick="sendPrompt('Explícame cómo funciona la Drop Zone en el Visualizador Excel Pro')">
+  <rect x="258" y="96" width="164" height="78" rx="12" fill="#091E2E" stroke="#1eddbb" stroke-width="0.8"/>
+  <rect x="258" y="96" width="164" height="3" rx="2" fill="url(#rg-teal)"/>
+  <!-- upload icon -->
+  <polyline points="324,131 340,116 356,131" fill="none" stroke="#1eddbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="340" y1="116" x2="340" y2="142" stroke="#1eddbb" stroke-width="1.5" stroke-linecap="round"/>
+  <rect x="324" y="143" width="32" height="4" rx="2" fill="#1eddbb" opacity="0.35"/>
+  <text font-family="var(--font-sans)" font-size="13" font-weight="500" fill="#C8F9EE" text-anchor="middle" x="340" y="158">Drop zone</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#6EEFCC"    text-anchor="middle" x="340" y="170">.xlsx · .xls · .csv · 25 MB</text>
+</g>
+
+<!-- ════════════════════════════════
+     NODO 2 — SheetJS Parser  (arriba-derecha)
+════════════════════════════════ -->
+<g style="cursor:pointer" onclick="sendPrompt('¿Cómo parsea SheetJS los archivos Excel en el Visualizador?')">
+  <rect x="490" y="176" width="152" height="82" rx="12" fill="#071828" stroke="#4BAAF5" stroke-width="0.8"/>
+  <rect x="490" y="176" width="152" height="3" rx="2" fill="url(#rg-blue)"/>
+  <!-- file + gears icon -->
+  <path d="M542 196 L542 224 L558 224 L558 203 L551 196 Z" fill="none" stroke="#4BAAF5" stroke-width="1.3" stroke-linejoin="round"/>
+  <path d="M551 196 L551 203 L558 203" fill="none" stroke="#4BAAF5" stroke-width="1.1"/>
+  <line x1="545" y1="208" x2="555" y2="208" stroke="#4BAAF5" stroke-width="1" opacity="0.6"/>
+  <line x1="545" y1="213" x2="555" y2="213" stroke="#4BAAF5" stroke-width="1" opacity="0.6"/>
+  <line x1="545" y1="218" x2="555" y2="218" stroke="#4BAAF5" stroke-width="1" opacity="0.45"/>
+  <text font-family="var(--font-sans)" font-size="13" font-weight="500" fill="#C8E8FF" text-anchor="middle" x="566" y="244">SheetJS parser</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#7BBFF5"    text-anchor="middle" x="566" y="256">XLSX.read() → workbook</text>
+</g>
+
+<!-- ════════════════════════════════
+     NODO 3 — 6 Gráficas  (derecha)
+════════════════════════════════ -->
+<g style="cursor:pointer" onclick="sendPrompt('¿Qué tipos de gráficas genera el Visualizador Excel Pro?')">
+  <rect x="510" y="278" width="152" height="84" rx="12" fill="#0E0C24" stroke="#A07CF8" stroke-width="0.8"/>
+  <rect x="510" y="278" width="152" height="3" rx="2" fill="url(#rg-purple)"/>
+  <!-- 3 mini chart icons -->
+  <rect x="532" y="295" width="5" height="10" rx="1" fill="#A07CF8" opacity="0.7"/>
+  <rect x="539" y="290" width="5" height="15" rx="1" fill="#A07CF8" opacity="0.85"/>
+  <rect x="546" y="293" width="5" height="12" rx="1" fill="#A07CF8"/>
+  <!-- pie slice -->
+  <path d="M562 305 L562 295 A10 10 0 0 1 572 305 Z" fill="#A07CF8" opacity="0.8"/>
+  <circle cx="562" cy="305" r="10" fill="none" stroke="#A07CF8" stroke-width="1.2" opacity="0.6"/>
+  <!-- line -->
+  <polyline points="578,308 584,300 590,304 596,297 602,301" fill="none" stroke="#A07CF8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text font-family="var(--font-sans)" font-size="13" font-weight="500" fill="#DDD0FF" text-anchor="middle" x="586" y="348">6 visualizaciones</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#B090F5"    text-anchor="middle" x="586" y="360">Bar · Pie · Line · Área · ...</text>
+</g>
+
+<!-- ════════════════════════════════
+     NODO 4 — Paleta de colores  (abajo-derecha)
+════════════════════════════════ -->
+<g style="cursor:pointer" onclick="sendPrompt('¿Cómo funciona la paleta de colores en el Visualizador Excel Pro?')">
+  <rect x="476" y="398" width="164" height="82" rx="12" fill="#1A1200" stroke="#F8B84B" stroke-width="0.8"/>
+  <rect x="476" y="398" width="164" height="3" rx="2" fill="url(#rg-amber)"/>
+  <!-- color swatches -->
+  <circle cx="513" cy="420" r="7" fill="#3B82F6" stroke="#1A1200" stroke-width="1"/>
+  <circle cx="527" cy="420" r="7" fill="#10B981" stroke="#1A1200" stroke-width="1"/>
+  <circle cx="541" cy="420" r="7" fill="#F59E0B" stroke="#1A1200" stroke-width="1"/>
+  <circle cx="555" cy="420" r="7" fill="#EF4444" stroke="#1A1200" stroke-width="1"/>
+  <circle cx="569" cy="420" r="7" fill="#8B5CF6" stroke="#1A1200" stroke-width="1"/>
+  <circle cx="583" cy="420" r="7" fill="#06B6D4" stroke="#1A1200" stroke-width="1"/>
+  <text font-family="var(--font-sans)" font-size="13" font-weight="500" fill="#FDECC0" text-anchor="middle" x="558" y="445">Paleta de colores</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#D4A040"    text-anchor="middle" x="558" y="457">generateColors() · 8 rampas</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#D4A040"    text-anchor="middle" x="558" y="469">cíclicas RGBA</text>
+</g>
+
+<!-- ════════════════════════════════
+     NODO 5 — Detección columnas  (abajo-izquierda)
+════════════════════════════════ -->
+<g style="cursor:pointer" onclick="sendPrompt('¿Cómo detecta automáticamente las columnas el Visualizador Excel Pro?')">
+  <rect x="44" y="398" width="168" height="82" rx="12" fill="#001A1C" stroke="#22DDE8" stroke-width="0.8"/>
+  <rect x="44" y="398" width="168" height="3" rx="2" fill="url(#rg-cyan)"/>
+  <!-- table / column icon -->
+  <rect x="84" y="413" width="48" height="32" rx="4" fill="none" stroke="#22DDE8" stroke-width="1.2"/>
+  <line x1="100" y1="413" x2="100" y2="445" stroke="#22DDE8" stroke-width="1" opacity="0.5"/>
+  <line x1="116" y1="413" x2="116" y2="445" stroke="#22DDE8" stroke-width="1" opacity="0.5"/>
+  <line x1="84"  y1="422" x2="132" y2="422" stroke="#22DDE8" stroke-width="1" opacity="0.5"/>
+  <!-- highlight col -->
+  <rect x="100" y="413" width="16" height="9"  rx="0" fill="#22DDE8" opacity="0.3"/>
+  <!-- type badge -->
+  <rect x="138" y="413" width="28" height="13" rx="4" fill="#22DDE8" opacity="0.25"/>
+  <text font-family="var(--font-sans)" font-size="9" fill="#22DDE8" text-anchor="middle" x="152" y="422">num</text>
+  <rect x="138" y="430" width="28" height="13" rx="4" fill="#22DDE8" opacity="0.15"/>
+  <text font-family="var(--font-sans)" font-size="9" fill="#22DDE8" text-anchor="middle" x="152" y="439">cat</text>
+  <text font-family="var(--font-sans)" font-size="13" font-weight="500" fill="#C0F8FA" text-anchor="middle" x="128" y="457">Detección columnas</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#40C8D8"    text-anchor="middle" x="128" y="469">catCol + numCol auto</text>
+</g>
+
+<!-- ════════════════════════════════
+     NODO 6 — aggregateData  (izquierda)
+════════════════════════════════ -->
+<g style="cursor:pointer" onclick="sendPrompt('¿Qué hace la función aggregateData en el Visualizador Excel Pro?')">
+  <rect x="22"  y="278" width="158" height="82" rx="12" fill="#120820" stroke="#D07BFA" stroke-width="0.8"/>
+  <rect x="22"  y="278" width="158" height="3" rx="2" fill="url(#rg-violet)"/>
+  <!-- sigma / aggregate icon -->
+  <text font-family="var(--font-sans)" font-size="28" font-weight="400" fill="#D07BFA" text-anchor="middle" x="68" y="323" opacity="0.9">Σ</text>
+  <!-- mini table rows -->
+  <rect x="90" y="292" width="76" height="8"  rx="3" fill="#D07BFA" opacity="0.25"/>
+  <rect x="90" y="303" width="60" height="8"  rx="3" fill="#D07BFA" opacity="0.18"/>
+  <rect x="90" y="314" width="68" height="8"  rx="3" fill="#D07BFA" opacity="0.15"/>
+  <rect x="90" y="325" width="50" height="8"  rx="3" fill="#D07BFA" opacity="0.12"/>
+  <text font-family="var(--font-sans)" font-size="13" font-weight="500" fill="#EDD8FF" text-anchor="middle" x="101" y="348">aggregateData()</text>
+  <text font-family="var(--font-sans)" font-size="10" fill="#B070E0"    text-anchor="middle" x="101" y="360">Suma por categoría</text>
+</g>
+
+<!-- ════════════════════════════════
+     LEYENDA inferior
+════════════════════════════════ -->
+<rect x="220" y="545" width="240" height="28" rx="8" fill="#0C1828" stroke="#1eddbb" stroke-width="0.5" opacity="0.6"/>
+<circle cx="240" cy="559" r="4" fill="#1eddbb" opacity="0.8"/>
+<text font-family="var(--font-sans)" font-size="11" fill="#6EEFCC" x="250" y="563">Flujo de datos en tiempo real</text>
+<circle cx="388" cy="559" r="3" fill="#4BAAF5" opacity="0.8"/>
+<text font-family="var(--font-sans)" font-size="11" fill="#7BBFF5" x="396" y="563">sin servidor</text>
+
+</svg>
